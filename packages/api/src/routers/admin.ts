@@ -63,4 +63,43 @@ export const adminRouter = router({
       });
       return { success: true };
     }),
+
+  getAllOrders: adminProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.order.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }),
+
+  updateOrderStatus: adminProcedure
+    .input(
+      z.object({
+        orderId: z.string(),
+        status: z.enum([
+          'PENDING',
+          'PROCESSING',
+          'SHIPPED',
+          'DELIVERED',
+          'CANCELED',
+        ]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { orderId, status } = input;
+      const updatedOrder = await ctx.prisma.order.update({
+        where: { id: orderId },
+        data: { status },
+      });
+      return updatedOrder;
+    }),
 });

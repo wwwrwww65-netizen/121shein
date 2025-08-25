@@ -49,7 +49,12 @@ export default function AdminLayout({
                 إدارة المنتجات
               </Link>
             </li>
-            {/* Future links for Orders, Users, etc. can go here */}
+            <li className="mb-4">
+              <Link href="/admin/orders" className="hover:text-primary">
+                إدارة الطلبات
+              </Link>
+            </li>
+            {/* Future links for Users, etc. can go here */}
           </ul>
         </nav>
       </aside>
