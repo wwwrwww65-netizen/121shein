@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      # استخدام الطريقة الرسمية لتثبيت pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      # تثبيت Node.js بعد pnpm لضمان التوافق
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      
+      # باقي الخطوات
+      - name: Check versions
+        run: |
+          node --version
+          pnpm --version
+      
+      - name: Setup git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+      
+      - name: Install dependencies
+        run: pnpm install
+      
+      - name: Build project
+        run: pnpm run build --if-present
