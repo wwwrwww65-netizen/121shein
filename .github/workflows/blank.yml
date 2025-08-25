@@ -14,20 +14,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      # استخدام الطريقة الرسمية لتثبيت pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      # تثبيت Node.js بعد pnpm لضمان التوافق
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'pnpm'
       
-      - name: Install pnpm
-        run: npm install -g pnpm@8
-      
+      # باقي الخطوات
       - name: Check versions
         run: |
           node --version
           pnpm --version
-          
+      
       - name: Setup git
         run: |
           git config --global user.name "GitHub Actions"
@@ -35,10 +40,6 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install
-        
-      - name: Build project (if exists)
+      
+      - name: Build project
         run: pnpm run build --if-present
-        
-      - name: Test run (if exists)
-        run: |
-          timeout 10s pnpm run start --if-present || true
