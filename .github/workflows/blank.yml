@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    # إضافة استراتيجية للحاوية لجعل البيئة أكثر استقرارًا
+    container:
+      image: node:18-bullseye
+      
+    steps:
+      - uses: actions/checkout@v4
+      
+      # تثبيت pnpm الإصدار 8
+      - name: Install pnpm
+        run: npm install -g pnpm@8
+      
+      # التحقق من الإصدارات المثبتة
+      - name: Check versions
+        run: |
+          node --version
+          pnpm --version
+          
+      # تهيئة git (إذا لزم الأمر)
+      - name: Setup git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+      
+      # تثبيت الاعتماديات باستخدام pnpm
+      - name: Install dependencies
+        run: pnpm install
+        
+      # اختبار أن المشروع يمكنه البناء بدون أخطاء
+      - name: Build project (if exists)
+        run: pnpm run build --if-present
+        
+      # اختبار التشغيل (إذا كان هناك أمر start)
+      - name: Test run (if exists)
+        run: pnpm run start --if-present &
+        sleep 10
