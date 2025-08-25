@@ -5,21 +5,33 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { useCartStore } from '@/lib/store/cart';
 import { Button } from '@repo/ui/Button';
+import { trpc } from '@/lib/trpc/client';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items } = useCartStore();
+  const { items, clearCart } = useCartStore();
 
   // State for Shipping Address Form
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
   const [zip, setZip] = useState('');
   const [country, setCountry] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const total = items.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
     0
   );
+
+  const createOrderMutation = trpc.checkout.createOrder.useMutation({
+    onSuccess: (data) => {
+      clearCart(); // Clear the client-side cart
+      router.push(`/order/${data.orderId}`); // Redirect to confirmation page
+    },
+    onError: (error) => {
+      setError(error.message);
+    },
+  });
 
   useEffect(() => {
     const token = Cookies.get('token');
@@ -35,13 +47,12 @@ export default function CheckoutPage() {
     return <div>جاري التحميل...</div>;
   }
 
-  const handlePlaceOrder = () => {
-    console.log('Placing order with:', {
+  const handlePlaceOrder = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    createOrderMutation.mutate({
       shippingAddress: { street, city, zip, country },
-      items,
-      total,
     });
-    alert('هذه الميزة قيد التطوير. تم تسجيل تفاصيل الطلب في الكونسول.');
   };
 
   return (
@@ -49,56 +60,39 @@ export default function CheckoutPage() {
       <h1 className="text-3xl font-bold mb-6 text-center">إتمام عملية الدفع</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        <div className="lg:col-span-2">
-          <div className="space-y-8">
-            {/* Shipping Address Form */}
-            <div className="p-6 bg-white rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">1. عنوان الشحن</h2>
-              <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label htmlFor="street" className="block text-sm font-medium text-gray-700">الشارع</label>
-                  <input type="text" id="street" value={street} onChange={(e) => setStreet(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
-                </div>
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700">المدينة</label>
-                  <input type="text" id="city" value={city} onChange={(e) => setCity(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
-                </div>
-                <div>
-                  <label htmlFor="zip" className="block text-sm font-medium text-gray-700">الرمز البريدي</label>
-                  <input type="text" id="zip" value={zip} onChange={(e) => setZip(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
-                </div>
-                <div className="md:col-span-2">
-                  <label htmlFor="country" className="block text-sm font-medium text-gray-700">الدولة</label>
-                  <input type="text" id="country" value={country} onChange={(e) => setCountry(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
-                </div>
-              </form>
-            </div>
-
-            {/* Payment Information Form (Placeholder) */}
-            <div className="p-6 bg-white rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">2. معلومات الدفع</h2>
-              <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                <p className="text-gray-500">سيتم دمج بوابة دفع آمنة (مثل Stripe) هنا في مرحلة لاحقة.</p>
-                <div className="mt-4 space-y-4 opacity-50">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 text-left">رقم البطاقة</label>
-                    <div className="mt-1 block w-full h-10 bg-gray-200 rounded-md"></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 text-left">تاريخ الانتهاء</label>
-                      <div className="mt-1 block w-full h-10 bg-gray-200 rounded-md"></div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 text-left">CVC</label>
-                      <div className="mt-1 block w-full h-10 bg-gray-200 rounded-md"></div>
-                    </div>
-                  </div>
-                </div>
+        <form onSubmit={handlePlaceOrder} className="lg:col-span-2 space-y-8">
+          {/* Shipping Address Form */}
+          <div className="p-6 bg-white rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">1. عنوان الشحن</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label htmlFor="street" className="block text-sm font-medium text-gray-700">الشارع</label>
+                <input type="text" id="street" value={street} onChange={(e) => setStreet(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
+              </div>
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700">المدينة</label>
+                <input type="text" id="city" value={city} onChange={(e) => setCity(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
+              </div>
+              <div>
+                <label htmlFor="zip" className="block text-sm font-medium text-gray-700">الرمز البريدي</label>
+                <input type="text" id="zip" value={zip} onChange={(e) => setZip(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
+              </div>
+              <div className="md:col-span-2">
+                <label htmlFor="country" className="block text-sm font-medium text-gray-700">الدولة</label>
+                <input type="text" id="country" value={country} onChange={(e) => setCountry(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required />
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Payment Information Form (Placeholder) */}
+          <div className="p-6 bg-white rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">2. معلومات الدفع</h2>
+            <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+              <p className="text-gray-500">سيتم دمج بوابة دفع آمنة (مثل Stripe) هنا في مرحلة لاحقة.</p>
+            </div>
+          </div>
+          {error && <p className="text-red-500 text-center">{error}</p>}
+        </form>
 
         {/* Sidebar: Order Summary */}
         <div className="lg:col-span-1">
@@ -120,8 +114,12 @@ export default function CheckoutPage() {
               <span>المجموع الكلي</span>
               <span>{total.toFixed(2)} ر.س.</span>
             </div>
-            <Button className="w-full mt-6" onClick={handlePlaceOrder}>
-              تأكيد الطلب
+            <Button
+              className="w-full mt-6"
+              onClick={handlePlaceOrder}
+              disabled={createOrderMutation.isPending}
+            >
+              {createOrderMutation.isPending ? 'جاري إنشاء الطلب...' : 'تأكيد الطلب'}
             </Button>
           </div>
         </div>
