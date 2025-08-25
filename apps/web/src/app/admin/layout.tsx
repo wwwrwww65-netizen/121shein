@@ -9,6 +9,8 @@ interface DecodedToken {
   exp: number;
 }
 
+import Link from 'next/link';
+
 export default function AdminLayout({
   children,
 }: {
@@ -32,11 +34,26 @@ export default function AdminLayout({
   }
 
   return (
-    <div>
-      <header className="bg-primary text-white p-4">
-        <h1 className="text-xl font-bold">لوحة تحكم المسؤول</h1>
-      </header>
-      <main className="p-8">{children}</main>
+    <div className="flex min-h-screen">
+      <aside className="w-64 bg-gray-800 text-white p-4">
+        <h1 className="text-2xl font-bold mb-8">لوحة التحكم</h1>
+        <nav>
+          <ul>
+            <li className="mb-4">
+              <Link href="/admin" className="hover:text-primary">
+                الرئيسية
+              </Link>
+            </li>
+            <li className="mb-4">
+              <Link href="/admin/products" className="hover:text-primary">
+                إدارة المنتجات
+              </Link>
+            </li>
+            {/* Future links for Orders, Users, etc. can go here */}
+          </ul>
+        </nav>
+      </aside>
+      <main className="flex-1 p-8 bg-gray-100">{children}</main>
     </div>
   );
 }
