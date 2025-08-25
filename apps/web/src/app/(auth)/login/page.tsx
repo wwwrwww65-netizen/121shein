@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { useCartStore } from '@/lib/store/cart';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,8 +14,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       Cookies.set('token', data.token, { expires: 7 }); // Store token in cookie
+      // Sync the cart after logging in
+      await useCartStore.getState().syncCart();
       router.push('/'); // Redirect to homepage
     },
     onError: (error) => {

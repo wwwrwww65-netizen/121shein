@@ -22,6 +22,7 @@ model User {
   orders        Order[]
   reviews       Review[]
   addresses     Address[]
+  cart          Cart?
 }
 
 model Profile {
@@ -45,6 +46,7 @@ model Product {
   categories  Category[]
   reviews     Review[]
   orderItems  OrderItem[]
+  cartItems   CartItem[]
 }
 
 model Variant {
@@ -128,4 +130,25 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELED
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String     @unique
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    String
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  createdAt DateTime @default(now())
+
+  @@unique([cartId, productId])
 }
