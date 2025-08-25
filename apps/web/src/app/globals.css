@@ -1,0 +1,6 @@
+@import '@repo/ui/styles.css';
+
+/* Add any additional global styles for the web app here */
+body {
+  direction: rtl; /* Set default direction to right-to-left for Arabic */
+}

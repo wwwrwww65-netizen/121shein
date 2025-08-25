@@ -1,0 +1,24 @@
+{
+  "name": "@repo/ui",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.tsx",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "tailwindcss": "^3.4.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  },
+  "exports": {
+    "./Button": "./src/Button.tsx",
+    "./styles.css": "./src/styles.css",
+    "./tailwind.config.ts": "./tailwind.config.ts"
+  }
+}
